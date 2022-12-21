@@ -1,0 +1,169 @@
+import pygame.time
+import pygame.mixer
+import cv2
+from deepface import DeepFace
+import re
+import math
+import numpy as np
+import functools, operator
+import sys
+import time
+
+pygame.mixer.init()
+
+face_cascade = cv2.CascadeClassifier(r'カスケード分類器のパス指定\haarcascade_frontalface_default.xml')
+cap = cv2.VideoCapture(0)
+cap1 = cv2.VideoCapture(1)
+
+lowhap = pygame.mixer.Sound(r'ファイルパスの指定')
+midhap = pygame.mixer.Sound(r'ファイルパスの指定')
+lowang = pygame.mixer.Sound(r'ファイルパスの指定')
+midang = pygame.mixer.Sound(r'ファイルパスの指定')
+lowsad = pygame.mixer.Sound(r'ファイルパスの指定')
+midsad = pygame.mixer.Sound(r'ファイルパスの指定')
+lowfear = pygame.mixer.Sound(r'ファイルパスの指定')
+midfear = pygame.mixer.Sound(r'ファイルパスの指定')
+Fdim = pygame.mixer.Sound(r'ファイルパスの指定')
+Gaug = pygame.mixer.Sound(r'ファイルパスの指定')
+hC = pygame.mixer.Sound(r'ファイルパスの指定')
+Cdim = pygame.mixer.Sound(r'ファイルパスの指定')
+
+    
+while True:
+    time.sleep(2)
+
+    #フレームの取得
+    ret,frame = cap.read()
+    result = DeepFace.analyze(img_path = frame , actions=['emotion'], enforce_detection=False)
+    gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray,1.1,4)
+    for (x,y,w,h) in faces:
+        cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),3)
+        
+    ret,frame1 = cap1.read()
+    result1 = DeepFace.analyze(img_path = frame1 , actions=['emotion'], enforce_detection=False)
+    gray1 = cv2.cvtColor(frame1,cv2.COLOR_BGR2GRAY)
+    faces1 = face_cascade.detectMultiScale(gray1,1.1,4)
+    
+    emotion0 = result['emotion']
+    emotion1 = result1['emotion']
+
+    #数値の取り出し
+    emo0 = list(emotion0.values())
+    emos0 = [math.floor(i) for i in emo0]
+    print(emos0)
+    
+    emo1 = list(emotion1.values())
+    emos1 = [math.floor(i) for i in emo1]
+    print(emos1)
+    
+    cv2.imshow('frame',frame)
+    
+#    list_emotion = ['angry','disgust','fear','happy','sad','surprise','neutral']
+    
+    for i in range(9):
+        ret,frame00 = cap.read()
+        result00 = DeepFace.analyze(img_path = frame00 , actions=['emotion'], enforce_detection=False)
+        gray0 = cv2.cvtColor(frame00,cv2.COLOR_BGR2GRAY)
+        faces0 = face_cascade.detectMultiScale(gray0,1.1,4)
+        
+        ret,frame11 = cap1.read()
+        result11 = DeepFace.analyze(img_path = frame11 , actions=['emotion'], enforce_detection=False)
+        gray11 = cv2.cvtColor(frame11,cv2.COLOR_BGR2GRAY)
+        faces11 = face_cascade.detectMultiScale(gray11,1.1,4)
+ 
+        cv2.imshow('frame',frame00)
+
+        emotion00 = result00['emotion']
+        emotion11 = result11['emotion']
+
+        #数値の取り出し
+        emo00 = list(emotion00.values())
+        emos00 = [math.floor(i) for i in emo00]
+        emo11 = list(emotion11.values())
+        emos11 = [math.floor(i) for i in emo11]
+        
+        emosum0 = [emos0, emos00]
+        emos0 = [functools.reduce(operator.add, x) for x in zip(*emosum0)]
+        emosum1 = [emos1, emos11]
+        emos1 = [functools.reduce(operator.add, x) for x in zip(*emosum1)]
+
+        #距離の算出
+    emoi0 = [n/5 for n in emos0]
+    emoi1 = [n/5 for n in emos1]
+    emosum01 = [emoi0, emoi1]
+    emoeu01 = [functools.reduce(operator.sub, x) for x in zip(*emosum01)]
+    emoemo01 = [i ** 2 for i in emoeu01]
+    emoemosum01 = sum(emoemo01)
+    emoroot01 = math.sqrt(emoemosum01)#01の距離
+    
+    parea4 = emoroot01
+    area4 = parea4/1.5
+    
+    emosum4 = [emos0, emos1]
+    emos4 = [functools.reduce(operator.add, x) for x in zip(*emosum4)]
+    
+    emos = [n/20 for n in emos4]
+    
+    print(emos)
+        
+    #エリアの設定
+    if emos[0] > emos[2] and emos[0] > emos[3] and emos[0] > emos[4] and area4 < 50:
+        print("Angry")
+        Fdim.play()
+        
+    elif emos[2] > emos[0] and emos[2] > emos[3] and emos[2] > emos[4] and area4 < 50:
+        print("Fear")
+        Gaug.play()
+        
+    elif emos[3] > emos[0] and emos[3] > emos[2] and emos[3] > emos[4] and area4 < 50:
+        print("Happy")
+        hC.play()
+        
+    elif emos[4] > emos[0] and emos[4] > emos[2] and emos[4] > emos[3] and area4 < 50:
+        print("Sad")
+        Cdim.play()
+    
+    elif emos[0] > emos[2] and emos[0] > emos[3] and emos[0] > emos[4] and area4 < 80:
+        print("Angry??")
+        midang.play()
+    
+    elif emos[2] > emos[0] and emos[2] > emos[3] and emos[2] > emos[4] and area4 < 80:
+        print("Fear??")
+        midfear.play()
+        
+    elif emos[3] > emos[0] and emos[3] > emos[2] and emos[3] > emos[4] and area4 < 80:
+        print("Happy??")
+        midhap.play()
+    
+    elif emos[4] > emos[0] and emos[4] > emos[2] and emos[4] > emos[3] and area4 < 80:
+        print("Sad??")
+        midsad.play()
+        
+    elif emos[0] > emos[2] and emos[0] > emos[3] and emos[0] > emos[4] and area4 < 110:
+        print("not only Angry")
+        lowang.play()
+    
+    elif emos[2] > emos[0] and emos[2] > emos[3] and emos[2] > emos[4] and area4 < 110:
+        print("not only Fear")
+        lowfear.play()
+        
+    elif emos[3] > emos[0] and emos[3] > emos[2] and emos[3] > emos[4] and area4 < 110:
+        print("not only Happy")
+        lowhap.play
+    
+    elif emos[4] > emos[0] and emos[4] > emos[2] and emos[4] > emos[3] and area4 < 110:
+        print("not only Sad")
+        lowsad.
+        
+    else :
+        print("neutral")
+
+    cv2.imshow('frame',frame)
+    
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+    
+cap.release()
+cap1.release()
+cv2.destroyAllWindows()
