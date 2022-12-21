@@ -1,0 +1,200 @@
+import pygame.time
+import pygame.mixer
+import cv2
+from deepface import DeepFace
+import re
+import math
+import numpy as np
+import functools, operator
+import sys
+import time
+
+pygame.mixer.init()
+
+face_cascade = cv2.CascadeClassifier(r'カスケード分類器のファイルパスの指定\haarcascade_frontalface_default.xml')
+cap = cv2.VideoCapture(0)
+cap1 = cv2.VideoCapture(1)
+
+
+
+CM = pygame.mixer.Sound(r'ファイルパスの指定')
+Cmin = pygame.mixer.Sound(r'ファイルパスの指定')
+A = pygame.mixer.Sound(r'ファイルパスの指定')
+A7 = pygame.mixer.Sound(r'ファイルパスの指定')
+B = pygame.mixer.Sound(r'ファイルパスの指定')
+Cis = pygame.mixer.Sound(r'ファイルパスの指定')
+hC = pygame.mixer.Sound(r'ファイルパスの指定')
+Caug = pygame.mixer.Sound(r'ファイルパスの指定')
+Cdim = pygame.mixer.Sound(r'ファイルパスの指定')
+Cm7 = pygame.mixer.Sound(r'ファイルパスの指定')
+Fis = pygame.mixer.Sound(r'ファイルパスの指定')
+FaugM7 = pygame.mixer.Sound(r'ファイルパスの指定')
+Fdim = pygame.mixer.Sound(r'ファイルパスの指定')
+G = pygame.mixer.Sound(r'ファイルパスの指定')
+Gaug = pygame.mixer.Sound(r'ファイルパスの指定')
+Gdim = pygame.mixer.Sound(r'ファイルパスの指定')
+GM7 = pygame.mixer.Sound(r'ファイルパスの指定')
+Gmin7 = pygame.mixer.Sound(r'ファイルパスの指定')
+Gsus4 = pygame.mixer.Sound(r'ファイルパスの指定')
+H = pygame.mixer.Sound(r'ファイルパスの指定')
+    
+while True:
+    time.sleep(2.5)
+
+    #フレームの取得
+    ret,frame = cap.read()
+    result = DeepFace.analyze(img_path = frame , actions=['emotion'], enforce_detection=False)
+    gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray,1.1,4)
+    for (x,y,w,h) in faces:
+        cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),3)
+        
+    ret,frame1 = cap1.read()
+    result1 = DeepFace.analyze(img_path = frame1 , actions=['emotion'], enforce_detection=False)
+    gray1 = cv2.cvtColor(frame1,cv2.COLOR_BGR2GRAY)
+    faces1 = face_cascade.detectMultiScale(gray1,1.1,4)
+        
+    emotion0 = result['emotion']
+    emotion1 = result1['emotion']
+    
+    #数値の取り出し
+    emo0 = list(emotion0.values())
+    emos0 = [math.floor(i) for i in emo0]
+    print(emos0)
+    
+    emo1 = list(emotion1.values())
+    emos1 = [math.floor(i) for i in emo1]
+    print(emos1)
+    
+    cv2.imshow('frame',frame)
+    
+    for i in range(9):
+        ret,frame00 = cap.read()
+        result00 = DeepFace.analyze(img_path = frame00 , actions=['emotion'], enforce_detection=False)
+        gray0 = cv2.cvtColor(frame00,cv2.COLOR_BGR2GRAY)
+        faces0 = face_cascade.detectMultiScale(gray0,1.1,4)
+        
+        ret,frame11 = cap1.read()
+        result11 = DeepFace.analyze(img_path = frame11 , actions=['emotion'], enforce_detection=False)
+        gray11 = cv2.cvtColor(frame11,cv2.COLOR_BGR2GRAY)
+        faces11 = face_cascade.detectMultiScale(gray11,1.1,4)
+        
+        cv2.imshow('frame',frame00)
+
+        emotion00 = result00['emotion']
+        emotion11 = result11['emotion']
+        
+        #数値の取り出し
+        emo00 = list(emotion00.values())
+        emos00 = [math.floor(i) for i in emo00]
+        emo11 = list(emotion11.values())
+        emos11 = [math.floor(i) for i in emo11]
+        
+        emosum0 = [emos0, emos00]
+        emos0 = [functools.reduce(operator.add, x) for x in zip(*emosum0)]
+        emosum1 = [emos1, emos11]
+        emos1 = [functools.reduce(operator.add, x) for x in zip(*emosum1)]
+
+    emosum4 = [emos0, emos1]
+    emos4 = [functools.reduce(operator.add, x) for x in zip(*emosum4)]
+    
+    emos = [n/20 for n in emos4]
+    
+    print(emos)
+        
+    #エリアの設定
+    if emos[0] > 50:
+        print("Angry")
+        Fdim.play()
+        
+    elif emos[2] > 50:
+        print("Fear")
+        Gaug.play()
+        
+    elif emos[3] > 50:
+        print("Happy")
+        hC.play()
+        
+    elif emos[4] > 50:
+        print("Sad")
+        Cdim.play()
+    
+    elif 25 < emos[0] <= 50 and 25 < emos[3] <=50:
+        print("happy and angry > 25")
+        A.play()
+        
+        
+    elif 25 < emos[0] <= 50 and 25 < emos[4] <=50:
+        print("sad and angry > 25")
+        FaugM7.play()
+        
+    
+    elif 25 < emos[2] <= 50 and 25 < emos[4] <=50:
+        print("sad and fear > 25")
+        Cmin.play()
+    
+    elif 25 < emos[2] <= 50 and 25 < emos[3] <=50:
+        print("happy and fear > 25")
+        CM.play()
+    
+    elif 25 < emos[0] <= 50 and 5 < emos[3] <=25:
+        print("happy < angry")
+        A7.play()
+    
+    elif 25 < emos[0] <= 50 and 5 < emos[4] <=25:
+        print("sad < angry")
+        Gmin7.play()
+    
+    elif 25 < emos[2] <= 50 and 5 < emos[3] <=25:
+        print("happy < fear")
+        Fis.play()
+    
+    elif 25 < emos[2] <= 50 and 5 < emos[4] <=25:
+        print("sad < fear")
+        Gdim.play()
+        
+        
+    elif 25 < emos[3] <= 50 and 5 < emos[0] <=25:
+        print("angry < happy")
+        G.play()
+    
+    elif 25 < emos[3] <= 50 and 5 < emos[2] <=25:
+        print("fear < happy")
+        H.play()
+        
+    elif 25 < emos[4] <= 50 and 5 < emos[0] <=25:
+        print("angry < sad")
+        Cm7.play()
+        
+    elif 25 < emos[4] <= 50 and 5 < emos[2] <=25:
+        print("fear < sad")
+        Caug.play()
+    
+    elif emos[3] <= 25 and emos[0] <=25 and emos[3]+emos[0] > emos[3]+emos[2] and emos[3]+emos[0] >emos[4]+emos[0] and emos[3]+emos[0] > emos[4]+emos[2]:
+        print("small angry - happy")
+        Gsus4.play()
+    
+    elif emos[3] <= 25 and emos[2] <=25 and emos[3]+emos[2] > emos[3]+emos[0] and emos[3]+emos[2] >emos[4]+emos[0] and emos[3]+emos[2] > emos[4]+emos[2]:
+        print("small fear - happy")
+        B.play()
+        
+    elif emos[4] <= 25 and emos[0] <=25 and emos[4]+emos[0] > emos[3]+emos[0] and emos[4]+emos[0] >emos[3]+emos[2] and emos[4]+emos[0] > emos[4]+emos[2]:
+        print("small angry - sad")
+        GM7.play()
+        
+    elif emos[4] <= 25 and emos[2] <=25 and emos[4]+emos[2] > emos[3]+emos[0] and emos[4]+emos[2] >emos[3]+emos[2] and emos[4]+emos[2] > emos[4]+emos[0]:
+        print("small fear - sad")
+        Cis.play()
+        
+    else :
+        print("neutral")
+        cv2.putText(frame,'No',(50,50),cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3)
+
+    cv2.imshow('frame',frame)
+    
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+    
+cap.release()
+cap1.release()
+cv2.destroyAllWindows()
