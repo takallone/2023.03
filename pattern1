@@ -1,0 +1,176 @@
+import pygame.time
+import pygame.mixer
+import cv2
+from deepface import DeepFace
+import re
+import math
+import numpy as np
+import functools, operator
+import sys
+import time
+
+pygame.mixer.init()
+
+face_cascade = cv2.CascadeClassifier(r'カスケード分類器のファイルパス指定\haarcascade_frontalface_default.xml')
+cap = cv2.VideoCapture(0)
+
+CM = pygame.mixer.Sound(r'音のファイルパスの指定')
+Cmin = pygame.mixer.Sound(r'音のファイルパスの指定')
+A = pygame.mixer.Sound(r'音のファイルパスの指定')
+A7 = pygame.mixer.Sound(r'音のファイルパスの指定')
+B = pygame.mixer.Sound(r'音のファイルパスの指定')
+Cis = pygame.mixer.Sound(r'音のファイルパスの指定')
+hC = pygame.mixer.Sound(r'音のファイルパスの指定')
+Caug = pygame.mixer.Sound(r'音のファイルパスの指定')
+Cdim = pygame.mixer.Sound(r'音のファイルパスの指定')
+Cm7 = pygame.mixer.Sound(r'音のファイルパスの指定')
+Fis = pygame.mixer.Sound(r'音のファイルパスの指定')
+FaugM7 = pygame.mixer.Sound(r'音のファイルパスの指定')
+Fdim = pygame.mixer.Sound(r'音のファイルパスの指定')
+G = pygame.mixer.Sound(r'音のファイルパスの指定')
+Gaug = pygame.mixer.Sound(r'音のファイルパスの指定')
+Gdim = pygame.mixer.Sound(r'音のファイルパスの指定')
+GM7 = pygame.mixer.Sound(r'音のファイルパスの指定')
+Gmin7 = pygame.mixer.Sound(r'音のファイルパスの指定')
+Gsus4 = pygame.mixer.Sound(r'音のファイルパスの指定')
+H = pygame.mixer.Sound(r'音のファイルパスの指定')
+    
+while True:
+    time.sleep(3)
+
+    #フレームの取得
+    ret,frame = cap.read()
+    result = DeepFace.analyze(img_path = frame , actions=['emotion'], enforce_detection=False)
+        
+    gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray,1.1,4)
+        
+    emotion1 = result['emotion']
+        
+    #数値の取り出し整数化
+    emo1 = list(emotion1.values())
+    emos1 = [math.floor(i) for i in emo1]
+    print(emos1)
+    
+    cv2.imshow('frame',frame)
+    
+    for i in range(14):
+        ret,frame2 = cap.read()
+        result2 = DeepFace.analyze(img_path = frame2 , actions=['emotion'], enforce_detection=False)
+        
+        gray2 = cv2.cvtColor(frame2,cv2.COLOR_BGR2GRAY)
+        faces2 = face_cascade.detectMultiScale(gray2,1.1,4)
+        cv2.imshow('frame',frame2)
+
+        emotion2 = result2['emotion']
+        
+        #数値の取り出し整数化
+        emo2 = list(emotion2.values())
+        emos2 = [math.floor(i) for i in emo2]
+  
+        print(emos2)
+        
+        emosum = [emos1, emos2]
+        emos1 = [functools.reduce(operator.add, x) for x in zip(*emosum)]
+        
+    
+    emos = [n/15 for n in emos1]
+    
+    print(emos)
+        
+        
+    if emos[0] > 50:
+        print("Angry")
+        Fdim.play()
+        
+    elif emos[2] > 50:
+        print("Fear")
+        Gaug.play()
+        
+    elif emos[3] > 50:
+        print("Happy")
+        hC.play()
+        
+    elif emos[4] > 50:
+        print("Sad")
+        Cdim.play()
+    
+    elif 25 < emos[0] <= 50 and 25 < emos[3] <=50:
+        print("happy and angry > 25")
+        A.play()
+        
+        
+    elif 25 < emos[0] <= 50 and 25 < emos[4] <=50:
+        print("sad and angry > 25")
+        FaugM7.play()
+        
+    
+    elif 25 < emos[2] <= 50 and 25 < emos[4] <=50:
+        print("sad and fear > 25")
+        Cmin.play()
+    
+    elif 25 < emos[2] <= 50 and 25 < emos[3] <=50:
+        print("happy and fear > 25")
+        CM.play()
+    
+    elif 25 < emos[0] <= 50 and 5 < emos[3] <=25:
+        print("happy < angry")
+        A7.play()
+    
+    elif 25 < emos[0] <= 50 and 5 < emos[4] <=25:
+        print("sad < angry")
+        Gmin7.play()
+    
+    elif 25 < emos[2] <= 50 and 5 < emos[3] <=25:
+        print("happy < fear")
+        Fis.play()
+    
+    elif 25 < emos[2] <= 50 and 5 < emos[4] <=25:
+        print("sad < fear")
+        Gdim.play()
+        
+        
+    elif 25 < emos[3] <= 50 and 5 < emos[0] <=25:
+        print("angry < happy")
+        G.play()
+    
+    elif 25 < emos[3] <= 50 and 5 < emos[2] <=25:
+        print("fear < happy")
+        H.play()
+        
+    elif 25 < emos[4] <= 50 and 5 < emos[0] <=25:
+        print("angry < sad")
+        Cm7.play()
+        
+    elif 25 < emos[4] <= 50 and 5 < emos[2] <=25:
+        print("fear < sad")
+        Caug.play()
+    
+    elif emos[3] <= 25 and emos[0] <=25 and emos[3]+emos[0] > emos[3]+emos[2] and emos[3]+emos[0] >emos[4]+emos[0] and emos[3]+emos[0] > emos[4]+emos[2]:
+        print("small angry - happy")
+        Gsus4.play()
+    
+    elif emos[3] <= 25 and emos[2] <=25 and emos[3]+emos[2] > emos[3]+emos[0] and emos[3]+emos[2] >emos[4]+emos[0] and emos[3]+emos[2] > emos[4]+emos[2]:
+        print("small fear - happy")
+        B.play()
+        
+    elif emos[4] <= 25 and emos[0] <=25 and emos[4]+emos[0] > emos[3]+emos[0] and emos[4]+emos[0] >emos[3]+emos[2] and emos[4]+emos[0] > emos[4]+emos[2]:
+        print("small angry - sad")
+        GM7.play()
+        
+    elif emos[4] <= 25 and emos[2] <=25 and emos[4]+emos[2] > emos[3]+emos[0] and emos[4]+emos[2] >emos[3]+emos[2] and emos[4]+emos[2] > emos[4]+emos[0]:
+        print("small fear - sad")
+        Cis.play()
+        
+    
+    else :
+        print("neutral")
+        
+    cv2.imshow('frame',frame)
+    
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+    
+    
+cap.release()
+cv2.destroyAllWindows()
