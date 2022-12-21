@@ -1,0 +1,250 @@
+import pygame.time
+import pygame.mixer
+import cv2
+from deepface import DeepFace
+import re
+import math
+import numpy as np
+import functools, operator
+import sys
+import time
+
+pygame.mixer.init()
+
+face_cascade = cv2.CascadeClassifier(r'カスケード分類器のファイルパスの指定\haarcascade_frontalface_default.xml')
+cap = cv2.VideoCapture(0)
+cap1 = cv2.VideoCapture(1)
+cap2 = cv2.VideoCapture(2)
+cap3 = cv2.VideoCapture(3)
+
+
+lowhap = pygame.mixer.Sound(r'ファイルパスの指定')
+midhap = pygame.mixer.Sound(r'ファイルパスの指定')
+lowang = pygame.mixer.Sound(r'ファイルパスの指定')
+midang = pygame.mixer.Sound(r'ファイルパスの指定')
+lowsad = pygame.mixer.Sound(r'ファイルパスの指定')
+midsad = pygame.mixer.Sound(r'ファイルパスの指定')
+lowfear = pygame.mixer.Sound(r'ファイルパスの指定')
+midfear = pygame.mixer.Sound(r'ファイルパスの指定')
+Fdim = pygame.mixer.Sound(r'ファイルパスの指定')
+Gaug = pygame.mixer.Sound(r'ファイルパスの指定')
+hC = pygame.mixer.Sound(r'ファイルパスの指定')
+Cdim = pygame.mixer.Sound(r'ファイルパスの指定')
+
+    
+while True:
+    time.sleep(2)
+
+    #フレームの取得
+    ret,frame = cap.read()
+    result = DeepFace.analyze(img_path = frame , actions=['emotion'], enforce_detection=False)
+    gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray,1.1,4)
+    for (x,y,w,h) in faces:
+        cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),3)
+        
+    ret,frame1 = cap1.read()
+    result1 = DeepFace.analyze(img_path = frame1 , actions=['emotion'], enforce_detection=False)
+    gray1 = cv2.cvtColor(frame1,cv2.COLOR_BGR2GRAY)
+    faces1 = face_cascade.detectMultiScale(gray1,1.1,4)
+    
+    ret,frame2 = cap2.read()
+    result2 = DeepFace.analyze(img_path = frame2 , actions=['emotion'], enforce_detection=False)
+    gray2 = cv2.cvtColor(frame2,cv2.COLOR_BGR2GRAY)
+    faces2 = face_cascade.detectMultiScale(gray2,1.1,4) 
+    
+    ret,frame3 = cap3.read()
+    result3 = DeepFace.analyze(img_path = frame3 , actions=['emotion'], enforce_detection=False)
+    gray3 = cv2.cvtColor(frame3,cv2.COLOR_BGR2GRAY)
+    faces3 = face_cascade.detectMultiScale(gray3,1.1,4) 
+        
+    emotion0 = result['emotion']
+    emotion1 = result1['emotion']
+    emotion2 = result2['emotion']
+    emotion3 = result3['emotion']
+        
+    #数値の取り出し
+    emo0 = list(emotion0.values())
+    emos0 = [math.floor(i) for i in emo0]
+    print(emos0)
+    
+    emo1 = list(emotion1.values())
+    emos1 = [math.floor(i) for i in emo1]
+    print(emos1)
+    
+    emo2 = list(emotion2.values())
+    emos2 = [math.floor(i) for i in emo2]
+    print(emos2)
+    
+    emo3 = list(emotion3.values())
+    emos3 = [math.floor(i) for i in emo3]
+    print(emos3)
+    
+    cv2.imshow('frame',frame)
+    
+    for i in range(4):
+        ret,frame00 = cap.read()
+        result00 = DeepFace.analyze(img_path = frame00 , actions=['emotion'], enforce_detection=False)
+        gray0 = cv2.cvtColor(frame00,cv2.COLOR_BGR2GRAY)
+        faces0 = face_cascade.detectMultiScale(gray0,1.1,4)
+        
+        ret,frame11 = cap1.read()
+        result11 = DeepFace.analyze(img_path = frame11 , actions=['emotion'], enforce_detection=False)
+        gray11 = cv2.cvtColor(frame11,cv2.COLOR_BGR2GRAY)
+        faces11 = face_cascade.detectMultiScale(gray11,1.1,4)
+        
+        ret,frame22 = cap2.read()
+        result22 = DeepFace.analyze(img_path = frame22 , actions=['emotion'], enforce_detection=False)
+        gray22 = cv2.cvtColor(frame22,cv2.COLOR_BGR2GRAY)
+        faces22 = face_cascade.detectMultiScale(gray22,1.1,4)
+        
+        ret,frame33 = cap3.read()
+        result33 = DeepFace.analyze(img_path = frame33 , actions=['emotion'], enforce_detection=False)
+        gray33 = cv2.cvtColor(frame33,cv2.COLOR_BGR2GRAY)
+        faces33 = face_cascade.detectMultiScale(gray33,1.1,4)
+        
+        cv2.imshow('frame',frame00)
+
+        emotion00 = result00['emotion']
+        emotion11 = result11['emotion']
+        emotion22 = result22['emotion']
+        emotion33 = result33['emotion']
+        
+        #数値の取り出し
+        emo00 = list(emotion00.values())
+        emos00 = [math.floor(i) for i in emo00]
+        emo11 = list(emotion11.values())
+        emos11 = [math.floor(i) for i in emo11]
+        emo22 = list(emotion22.values())
+        emos22 = [math.floor(i) for i in emo22]
+        emo33 = list(emotion33.values())
+        emos33 = [math.floor(i) for i in emo33]
+  
+        print(emos00)
+        
+        emosum0 = [emos0, emos00]
+        emos0 = [functools.reduce(operator.add, x) for x in zip(*emosum0)]
+        emosum1 = [emos1, emos11]
+        emos1 = [functools.reduce(operator.add, x) for x in zip(*emosum1)]
+        emosum2 = [emos2, emos22]
+        emos2 = [functools.reduce(operator.add, x) for x in zip(*emosum2)]
+        emosum3 = [emos3, emos33]
+        emos3 = [functools.reduce(operator.add, x) for x in zip(*emosum3)]
+        
+    emoi0 = [n/5 for n in emos0]
+    emoi1 = [n/5 for n in emos1]
+    emosum01 = [emoi0, emoi1]
+    emoeu01 = [functools.reduce(operator.sub, x) for x in zip(*emosum01)]
+    emoemo01 = [i ** 2 for i in emoeu01]
+    emoemosum01 = sum(emoemo01)
+    emoroot01 = math.sqrt(emoemosum01)#01の距離
+    
+    emoi0 = [n/5 for n in emos0]
+    emoi2 = [n/5 for n in emos2]
+    emosum02 = [emoi0, emoi2]
+    emoeu02 = [functools.reduce(operator.sub, x) for x in zip(*emosum02)]
+    emoemo02 = [i ** 2 for i in emoeu02]
+    emoemosum02 = sum(emoemo02)
+    emoroot02 = math.sqrt(emoemosum02)#02の距離
+    
+    emoi0 = [n/5 for n in emos0]
+    emoi3 = [n/5 for n in emos3]
+    emosum03 = [emoi0, emoi3]
+    emoeu03 = [functools.reduce(operator.sub, x) for x in zip(*emosum03)]
+    emoemo03 = [i ** 2 for i in emoeu03]
+    emoemosum03 = sum(emoemo03)
+    emoroot03 = math.sqrt(emoemosum03)#03の距離
+    
+    emoi1 = [n/5 for n in emos1]
+    emoi2 = [n/5 for n in emos2]
+    emosum12 = [emoi1, emoi2]
+    emoeu12 = [functools.reduce(operator.sub, x) for x in zip(*emosum12)]
+    emoemo12 = [i ** 2 for i in emoeu12]
+    emoemosum12 = sum(emoemo12)
+    emoroot12 = math.sqrt(emoemosum12)#12の距離
+    
+    emoi1 = [n/5 for n in emos1]
+    emoi3 = [n/5 for n in emos3]
+    emosum13 = [emoi1, emoi3]
+    emoeu13 = [functools.reduce(operator.sub, x) for x in zip(*emosum13)]
+    emoemo13 = [i ** 2 for i in emoeu13]
+    emoemosum13 = sum(emoemo13)
+    emoroot13 = math.sqrt(emoemosum13)#13の距離
+    
+    emoi2 = [n/5 for n in emos2]
+    emoi3 = [n/5 for n in emos3]
+    emosum23 = [emoi2, emoi3]
+    emoeu23 = [functools.reduce(operator.sub, x) for x in zip(*emosum23)]
+    emoemo23 = [i ** 2 for i in emoeu23]
+    emoemosum23 = sum(emoemo23)
+    emoroot23 = math.sqrt(emoemosum23)#23の距離
+    
+    parea4 = emoroot01 + emoroot02 + emoroot03 + emoroot12 + emoroot13 + emoroot23
+    area4 = parea4/6
+    
+    emosum4 = [emos0, emos1, emos2, emos3]
+    emos4 = [functools.reduce(operator.add, x) for x in zip(*emosum4)]
+    
+    emos = [n/20 for n in emos4]
+        
+    if emos[0] > emos[2] and emos[0] > emos[3] and emos[0] > emos[4] and area4 < 50:
+        print("Angry")
+        Fdim.play()
+        
+    elif emos[2] > emos[0] and emos[2] > emos[3] and emos[2] > emos[4] and area4 < 50:
+        print("Fear")
+        Gaug.play()
+        
+    elif emos[3] > emos[0] and emos[3] > emos[2] and emos[3] > emos[4] and area4 < 50:
+        print("Happy")
+        hC.play()
+        
+    elif emos[4] > emos[0] and emos[4] > emos[2] and emos[4] > emos[3] and area4 < 50:
+        print("Sad")
+        Cdim.play()
+    
+    elif emos[0] > emos[2] and emos[0] > emos[3] and emos[0] > emos[4] and area4 < 80:
+        print("Angry??")
+        midang.play()
+    
+    elif emos[2] > emos[0] and emos[2] > emos[3] and emos[2] > emos[4] and area4 < 80:
+        print("Fear??")
+        midfear.play()
+        
+    elif emos[3] > emos[0] and emos[3] > emos[2] and emos[3] > emos[4] and area4 < 80:
+        print("Happy??")
+        midhap.play()
+    
+    elif emos[4] > emos[0] and emos[4] > emos[2] and emos[4] > emos[3] and area4 < 80:
+        print("Sad??")
+        midsad.play()
+        
+    elif emos[0] > emos[2] and emos[0] > emos[3] and emos[0] > emos[4] and area4 < 110:
+        print("not only Angry")
+        lowang.play()
+    
+    elif emos[2] > emos[0] and emos[2] > emos[3] and emos[2] > emos[4] and area4 < 110:
+        print("not only Fear")
+        lowfear.play()
+        
+    elif emos[3] > emos[0] and emos[3] > emos[2] and emos[3] > emos[4] and area4 < 110:
+        print("not only Happy")
+        lowhap.play()
+    
+    elif emos[4] > emos[0] and emos[4] > emos[2] and emos[4] > emos[3] and area4 < 110:
+        print("not only Sad")
+        lowsad.play()
+        
+    else :
+        print("neutral")
+
+    cv2.imshow('frame',frame)
+    
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+    
+cap.release()
+cap1.release()
+cap2.release()
+cap3.release()
+cv2.destroyAllWindows()
